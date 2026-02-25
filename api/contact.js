@@ -1,12 +1,30 @@
 const nodemailer = require("nodemailer");
 
+/* ---- CREATE TRANSPORTER ONCE ---- */
+let transporter;
+
+if (!transporter) {
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: Number(process.env.SMTP_PORT) === 465,
+    pool: true,                // ✅ important
+    maxConnections: 2,         // ✅ prevent overload
+    maxMessages: 50,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+}
+
 module.exports = async function handler(req, res) {
+
   /* ---- CORS HEADERS ---- */
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  /* Handle preflight request */
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -26,28 +44,9 @@ module.exports = async function handler(req, res) {
       requirement
     } = req.body || {};
 
-    /* ---- BASIC VALIDATION ---- */
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !number ||
-      !companyName ||
-      !enquiryFor
-    ) {
+    if (!firstName || !lastName || !email || !number || !companyName || !enquiryFor) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-
-    /* ---- SMTP TRANSPORT ---- */
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
 
     /* ---- SEND ADMIN MAIL ---- */
     await transporter.sendMail({
