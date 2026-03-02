@@ -101,23 +101,55 @@ module.exports = async function handler(req, res) {
       requirement: sanitize(requirement) || "N/A",
     };
 
-    console.log("Sending email from:", process.env.SMTP_USER);
+    console.log("Processing enquiry from:", safe.email);
 
     /* ---------------- SEND ADMIN EMAIL ---------------- */
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: process.env.SMTP_USER,
-      replyTo: email, // raw email is safe here (nodemailer handles it)
-      subject: `New Enquiry - ${safe.firstName} ${safe.lastName}`,
+      replyTo: email,
+      subject: `New Website Enquiry - ${safe.firstName} ${safe.lastName}`,
       html: `
-        <h2>New Website Enquiry</h2>
-        <hr/>
-        <p><b>Name:</b> ${safe.firstName} ${safe.lastName}</p>
-        <p><b>Email:</b> ${safe.email}</p>
-        <p><b>Phone:</b> ${safe.number}</p>
-        <p><b>Company:</b> ${safe.companyName}</p>
-        <p><b>Enquiry For:</b> ${safe.enquiryFor}</p>
-        <p><b>Requirement:</b><br/>${safe.requirement}</p>
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+          <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
+            <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">Website Lead Notification</p>
+          </div>
+          <div style="padding: 30px; background-color: #fff;">
+            <p style="font-size: 16px; color: #333; margin-bottom: 25px;">You have received a new enquiry from the website contact form.</p>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #777; width: 150px;"><strong>Client Name</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #111;">${safe.firstName} ${safe.lastName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #777;"><strong>Email Address</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #111;"><a href="mailto:${safe.email}" style="color: #ff3e3e; text-decoration: none;">${safe.email}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #777;"><strong>Phone Number</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #111;">${safe.number}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #777;"><strong>Company</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #111;">${safe.companyName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #777;"><strong>Enquiry For</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #111;">${safe.enquiryFor}</td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 25px; padding: 20px; background-color: #f9f9f9; border-radius: 6px;">
+              <strong style="display: block; margin-bottom: 10px; color: #333;">Requirement Details:</strong>
+              <p style="color: #444; margin: 0; line-height: 1.6; white-space: pre-wrap;">${safe.requirement}</p>
+            </div>
+          </div>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; color: #999; font-size: 12px;">
+            This email was sent automatically from the Techfit Active website.
+          </div>
+        </div>
       `,
     });
 
@@ -125,21 +157,47 @@ module.exports = async function handler(req, res) {
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: email,
-      subject: "Thanks for contacting Techfit Active",
+      subject: "Thank You for Contacting Techfit Active",
       html: `
-        <p>Hi ${safe.firstName},</p>
-        <p>Thanks for your enquiry. We'll contact you soon.</p>
-        <br/>
-        <p>– Techfit Active Team</p>
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+          <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
+          </div>
+          <div style="padding: 30px; background-color: #fff; text-align: center;">
+            <h2 style="color: #111; margin-top: 0;">Hi ${safe.firstName},</h2>
+            <p style="font-size: 16px; color: #444; line-height: 1.6;">
+              Thank you for reaching out to us. We have received your enquiry regarding <strong>${safe.enquiryFor}</strong>.
+            </p>
+            <p style="font-size: 16px; color: #444; line-height: 1.6;">
+              Our team will review your requirements and get back to you as soon as possible.
+            </p>
+            <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+              <p style="margin: 0; color: #111; font-weight: bold;">Techfit Active Team</p>
+              <p style="margin: 5px 0 0; color: #777; font-size: 14px;">Premium Fitness Asset Management</p>
+              <p style="margin: 10px 0 0; font-size: 14px;">
+                <a href="https://techfitactive.com" style="color: #ff3e3e; text-decoration: none;">techfitactive.com</a>
+              </p>
+            </div>
+          </div>
+          <div style="background: #f4f4f4; padding: 15px; text-align: center; color: #999; font-size: 12px;">
+            &© ${new Date().getFullYear()} Techfit Active. All rights reserved.
+          </div>
+        </div>
       `,
     });
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("MAIL ERROR:", err);
+    console.error("MAIL ERROR DETAILS:", {
+      message: err.message,
+      stack: err.stack,
+      code: err.code,
+      command: err.command
+    });
     return res.status(500).json({
       error: "Failed to send email",
-      details: err.message,
+      message: "Our mail server is currently experiencing issues. Please try again later or contact us directly.",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
