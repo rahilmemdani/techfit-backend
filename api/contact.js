@@ -1,26 +1,48 @@
 const nodemailer = require("nodemailer");
 
-/* ---- CREATE TRANSPORTER ONCE ---- */
-let transporter;
+// Load .env locally (safe if not present in production)
+try {
+  require("dotenv").config();
+} catch (e) { }
 
-if (!transporter) {
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
-    pool: true,                // ✅ important
-    maxConnections: 2,         // ✅ prevent overload
-    maxMessages: 50,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
+/* ---------------- HELPERS ---------------- */
+
+/** Simple email format check */
+function isValidEmail(str) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
-module.exports = async function handler(req, res) {
+/** Strip HTML tags & encode dangerous characters to prevent injection */
+function sanitize(str) {
+  if (typeof str !== "string") return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-  /* ---- CORS HEADERS ---- */
+/* ---------------- TRANSPORTER ---------------- */
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false, // MUST be false for 587
+  requireTLS: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false, // Needed for many cPanel servers
+  },
+});
+
+/* ---------------- HANDLER ---------------- */
+
+module.exports = async function handler(req, res) {
+  /* ---- CORS ---- */
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -34,6 +56,13 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    /* ---- Fix body parsing for serverless ---- */
+    let body = req.body;
+
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+
     const {
       firstName,
       lastName,
@@ -41,48 +70,76 @@ module.exports = async function handler(req, res) {
       number,
       companyName,
       enquiryFor,
-      requirement
-    } = req.body || {};
+      requirement,
+    } = body || {};
 
-    if (!firstName || !lastName || !email || !number || !companyName || !enquiryFor) {
+    /* ---- Basic Validation ---- */
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !number ||
+      !companyName ||
+      !enquiryFor
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    /* ---- SEND ADMIN MAIL ---- */
+    /* ---- Email Format Validation ---- */
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    /* ---- Sanitize all inputs ---- */
+    const safe = {
+      firstName: sanitize(firstName),
+      lastName: sanitize(lastName),
+      email: sanitize(email),
+      number: sanitize(number),
+      companyName: sanitize(companyName),
+      enquiryFor: sanitize(enquiryFor),
+      requirement: sanitize(requirement) || "N/A",
+    };
+
+    console.log("Sending email from:", process.env.SMTP_USER);
+
+    /* ---------------- SEND ADMIN EMAIL ---------------- */
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: process.env.SMTP_USER,
-      replyTo: email,
-      subject: `New Enquiry - ${firstName} ${lastName}`,
+      replyTo: email, // raw email is safe here (nodemailer handles it)
+      subject: `New Enquiry - ${safe.firstName} ${safe.lastName}`,
       html: `
         <h2>New Website Enquiry</h2>
         <hr/>
-        <p><b>Name:</b> ${firstName} ${lastName}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Phone:</b> ${number}</p>
-        <p><b>Company:</b> ${companyName}</p>
-        <p><b>Enquiry For:</b> ${enquiryFor}</p>
-        <p><b>Requirement:</b><br/>${requirement || "N/A"}</p>
-      `
+        <p><b>Name:</b> ${safe.firstName} ${safe.lastName}</p>
+        <p><b>Email:</b> ${safe.email}</p>
+        <p><b>Phone:</b> ${safe.number}</p>
+        <p><b>Company:</b> ${safe.companyName}</p>
+        <p><b>Enquiry For:</b> ${safe.enquiryFor}</p>
+        <p><b>Requirement:</b><br/>${safe.requirement}</p>
+      `,
     });
 
-    /* ---- AUTO REPLY ---- */
+    /* ---------------- AUTO REPLY ---------------- */
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: email,
       subject: "Thanks for contacting Techfit Active",
       html: `
-        <p>Hi ${firstName},</p>
+        <p>Hi ${safe.firstName},</p>
         <p>Thanks for your enquiry. We'll contact you soon.</p>
         <br/>
         <p>– Techfit Active Team</p>
-      `
+      `,
     });
 
     return res.status(200).json({ success: true });
-
   } catch (err) {
-    console.error("Mail error:", err);
-    return res.status(500).json({ error: "Failed to send email" });
+    console.error("MAIL ERROR:", err);
+    return res.status(500).json({
+      error: "Failed to send email",
+      details: err.message,
+    });
   }
 };
