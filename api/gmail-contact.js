@@ -2,112 +2,112 @@ const nodemailer = require("nodemailer");
 
 // Load .env locally (safe if not present in production)
 try {
-    require("dotenv").config();
+  require("dotenv").config();
 } catch (e) { }
 
 /* ---------------- HELPERS ---------------- */
 
 /** Simple email format check */
 function isValidEmail(str) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
 /** Strip HTML tags & encode dangerous characters to prevent injection */
 function sanitize(str) {
-    if (typeof str !== "string") return "";
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+  if (typeof str !== "string") return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /* ---------------- TRANSPORTER ---------------- */
 
 // Gmail SMTP configuration
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-    },
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
 });
 
 /* ---------------- HANDLER ---------------- */
 
 module.exports = async function handler(req, res) {
-    /* ---- CORS ---- */
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  /* ---- CORS ---- */
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    /* ---- Fix body parsing for serverless ---- */
+    let body = req.body;
+
+    if (typeof body === "string") {
+      body = JSON.parse(body);
     }
 
-    if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method not allowed" });
+    const {
+      name,
+      email,
+      phone,
+      gymName,
+      city,
+      requirement,
+      budget,
+      message,
+    } = body || {};
+
+    /* ---- Basic Validation ---- */
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !gymName ||
+      !city ||
+      !requirement ||
+      !message
+    ) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    try {
-        /* ---- Fix body parsing for serverless ---- */
-        let body = req.body;
+    /* ---- Email Format Validation ---- */
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
 
-        if (typeof body === "string") {
-            body = JSON.parse(body);
-        }
+    /* ---- Sanitize all inputs ---- */
+    const safe = {
+      name: sanitize(name),
+      email: sanitize(email),
+      phone: sanitize(phone),
+      gymName: sanitize(gymName),
+      city: sanitize(city),
+      requirement: sanitize(requirement),
+      budget: budget ? sanitize(budget) : "Not Specified",
+      message: sanitize(message),
+    };
 
-        const {
-            name,
-            email,
-            phone,
-            gymName,
-            city,
-            requirement,
-            budget,
-            message,
-        } = body || {};
+    console.log("Processing Portfolio enquiry from:", safe.email);
 
-        /* ---- Basic Validation ---- */
-        if (
-            !name ||
-            !email ||
-            !phone ||
-            !gymName ||
-            !city ||
-            !requirement ||
-            !message
-        ) {
-            return res.status(400).json({ error: "Missing required fields" });
-        }
-
-        /* ---- Email Format Validation ---- */
-        if (!isValidEmail(email)) {
-            return res.status(400).json({ error: "Invalid email address" });
-        }
-
-        /* ---- Sanitize all inputs ---- */
-        const safe = {
-            name: sanitize(name),
-            email: sanitize(email),
-            phone: sanitize(phone),
-            gymName: sanitize(gymName),
-            city: sanitize(city),
-            requirement: sanitize(requirement),
-            budget: budget ? sanitize(budget) : "Not Specified",
-            message: sanitize(message),
-        };
-
-        console.log("Processing Portfolio enquiry from:", safe.email);
-
-        /* ---------------- SEND ADMIN EMAIL ---------------- */
-        await transporter.sendMail({
-            from: process.env.GMAIL_FROM,
-            to: process.env.GMAIL_USER,
-            replyTo: email,
-            subject: `New Factory Quote Request - ${safe.name}`,
-            html: `
+    /* ---------------- SEND ADMIN EMAIL ---------------- */
+    await transporter.sendMail({
+      from: process.env.GMAIL_FROM,
+      to: process.env.GMAIL_USER,
+      replyTo: email,
+      subject: `New Factory Quote Request - ${safe.name}`,
+      html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
             <a href="https://techfittech.com" style="text-decoration: none;">
@@ -159,14 +159,14 @@ module.exports = async function handler(req, res) {
           </div>
         </div>
       `,
-        });
+    });
 
-        /* ---------------- AUTO REPLY ---------------- */
-        await transporter.sendMail({
-            from: process.env.GMAIL_FROM,
-            to: email,
-            subject: "We've Received Your Quote Request - Techfit",
-            html: `
+    /* ---------------- AUTO REPLY ---------------- */
+    await transporter.sendMail({
+      from: process.env.GMAIL_FROM,
+      to: email,
+      subject: "We've Received Your Quote Request - Techfit",
+      html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
             <a href="https://techfittech.com" style="text-decoration: none;">
@@ -191,20 +191,21 @@ module.exports = async function handler(req, res) {
           </div>
         </div>
       `,
-        });
+    });
 
-        return res.status(200).json({ success: true });
-    } catch (err) {
-        console.error("GMAIL MAIL ERROR DETAILS:", {
-            message: err.message,
-            stack: err.stack,
-            code: err.code,
-            command: err.command
-        });
-        return res.status(500).json({
-            error: "Failed to send email",
-            message: "Our factory mail server is currently experiencing issues. Please try again later.",
-            details: process.env.NODE_ENV === "development" ? err.message : undefined,
-        });
-    }
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("GMAIL MAIL ERROR DETAILS:", {
+      message: err.message,
+      stack: err.stack,
+      code: err.code,
+      command: err.command
+    });
+    return res.status(500).json({
+      error: "Failed to send email",
+      message: "Our factory mail server is currently experiencing issues. Please try again later.",
+      details: err.message,
+      code: err.code,
+    });
+  }
 };
