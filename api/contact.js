@@ -26,10 +26,12 @@ function sanitize(str) {
 /* ---------------- TRANSPORTER ---------------- */
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -99,8 +101,8 @@ module.exports = async function handler(req, res) {
 
     /* ---------------- SEND ADMIN EMAIL ---------------- */
     await transporter.sendMail({
-      from: `"Techfit Active" <${process.env.GMAIL_USER}>`,
-      to: process.env.GMAIL_USER,
+      from: process.env.SMTP_FROM,
+      to: process.env.SMTP_USER,
       replyTo: email,
       subject: `New Website Enquiry - ${safe.firstName} ${safe.lastName}`,
       html: `
@@ -151,7 +153,7 @@ module.exports = async function handler(req, res) {
 
     /* ---------------- AUTO REPLY ---------------- */
     await transporter.sendMail({
-      from: `"Techfit Active" <${process.env.GMAIL_USER}>`,
+      from: process.env.SMTP_FROM,
       to: email,
       subject: "Thank You for Contacting Techfit Active",
       html: `
