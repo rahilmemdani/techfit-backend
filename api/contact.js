@@ -27,11 +27,16 @@ function sanitize(str) {
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false, // MUST be false for 587
+  requireTLS: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+    checkServerIdentity: () => undefined, // Skip IP vs cert hostname check
   },
 });
 
@@ -108,10 +113,8 @@ module.exports = async function handler(req, res) {
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
-            <a href="https://techfitactive.com" style="text-decoration: none;">
-              <img src="https://www.techfitactive.com/techfit-active-logo.png" alt="Techfit Active" style="max-height: 50px; width: auto; border: 0;">
-            </a>
-            <p style="margin: 10px 0 0; opacity: 0.8; font-size: 14px;">Website Lead Notification</p>
+            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
+            <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">Website Lead Notification</p>
           </div>
           <div style="padding: 30px; background-color: #fff;">
             <p style="font-size: 16px; color: #333; margin-bottom: 25px;">You have received a new enquiry from the website contact form.</p>
@@ -159,9 +162,7 @@ module.exports = async function handler(req, res) {
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
-            <a href="https://techfitactive.com" style="text-decoration: none;">
-              <img src="https://www.techfitactive.com/techfit-active-logo.png" alt="Techfit Active" style="max-height: 50px; width: auto; border: 0;">
-            </a>
+            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
           </div>
           <div style="padding: 30px; background-color: #fff; text-align: center;">
             <h2 style="color: #111; margin-top: 0;">Hi ${safe.firstName},</h2>
