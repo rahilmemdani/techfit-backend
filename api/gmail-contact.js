@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
       subject: "We've Received Your Quote Request - Techfit",
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-          <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
+          <div style="background: #fff; color: #111; padding: 25px; text-align: center;">
             <a href="https://techfittech.com" style="text-decoration: none;">
               <img src="https://techfittech.com/wp-content/uploads/2026/01/logo-1.png" alt="Techfit Tech" style="max-height: 50px; width: auto; border: 0;">
             </a>
