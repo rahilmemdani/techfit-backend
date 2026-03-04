@@ -176,10 +176,10 @@ module.exports = async function handler(req, res) {
           <div style="padding: 30px; background-color: #fff; text-align: center;">
             <h2 style="color: #111; margin-top: 0;">Hi ${safe.name.split(' ')[0]},</h2>
             <p style="font-size: 16px; color: #444; line-height: 1.6;">
-              Thank you for reaching out to us. We have received your request for a factory quote regarding <strong>${safe.requirement.toUpperCase()}</strong>.
+              Thank you for reaching out to us. We have received your enquiry regarding <strong>${safe.requirement.toUpperCase()}</strong>.
             </p>
             <p style="font-size: 16px; color: #444; line-height: 1.6;">
-              Our representative will review your requirements and reach out on your mobile number <strong>+91 ${safe.phone}</strong> within 12-24 hours.
+              Our team will review your requirements and get back to you as soon as possible.
             </p>
             <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
               <p style="margin: 0; color: #111; font-weight: bold;">Techfit Factory Team</p>
