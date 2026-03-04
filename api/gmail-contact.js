@@ -204,8 +204,6 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({
       error: "Failed to send email",
       message: "Our factory mail server is currently experiencing issues. Please try again later.",
-      details: err.message,
-      code: err.code,
     });
   }
 };
