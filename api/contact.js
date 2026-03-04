@@ -112,8 +112,10 @@ module.exports = async function handler(req, res) {
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
-            <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">Website Lead Notification</p>
+            <a href="https://techfitactive.com" style="text-decoration: none;">
+              <img src="https://www.techfitactive.com/techfit-active-logo.png" alt="Techfit Active" style="max-height: 50px; width: auto; border: 0;">
+            </a>
+            <p style="margin: 10px 0 0; opacity: 0.8; font-size: 14px;">Website Lead Notification</p>
           </div>
           <div style="padding: 30px; background-color: #fff;">
             <p style="font-size: 16px; color: #333; margin-bottom: 25px;">You have received a new enquiry from the website contact form.</p>
@@ -161,7 +163,9 @@ module.exports = async function handler(req, res) {
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #111; color: #fff; padding: 25px; text-align: center;">
-            <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">TECHFIT <span style="color: #ff3e3e;">ACTIVE</span></h1>
+            <a href="https://techfitactive.com" style="text-decoration: none;">
+              <img src="https://www.techfitactive.com/techfit-active-logo.png" alt="Techfit Active" style="max-height: 50px; width: auto; border: 0;">
+            </a>
           </div>
           <div style="padding: 30px; background-color: #fff; text-align: center;">
             <h2 style="color: #111; margin-top: 0;">Hi ${safe.firstName},</h2>
@@ -180,7 +184,7 @@ module.exports = async function handler(req, res) {
             </div>
           </div>
           <div style="background: #f4f4f4; padding: 15px; text-align: center; color: #999; font-size: 12px;">
-            &© ${new Date().getFullYear()} Techfit Active. All rights reserved.
+            &copy; ${new Date().getFullYear()} Techfit Active. All rights reserved.
           </div>
         </div>
       `,

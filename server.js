@@ -8,6 +8,7 @@
 require("dotenv").config();
 const http = require("http");
 const handler = require("./api/contact");
+const gmailHandler = require("./api/gmail-contact");
 
 const PORT = process.env.PORT || 5000;
 
@@ -37,8 +38,14 @@ const server = http.createServer(async (req, res) => {
                 res.end(JSON.stringify(data));
             };
 
-            // Call the production handler
-            await handler(req, res);
+            // Basic routing
+            if (req.url === "/api/gmail-contact") {
+                await gmailHandler(req, res);
+            } else if (req.url === "/api/contact" || req.url === "/") {
+                await handler(req, res);
+            } else {
+                res.status(404).json({ error: "Not Found" });
+            }
         } catch (err) {
             console.error("Local Server Error:", err);
             res.statusCode = 500;
@@ -49,6 +56,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
     console.log(`🚀 Techfit Backend running locally at http://localhost:${PORT}`);
-    console.log(`📧 Endpoint: http://localhost:${PORT}/api/contact`);
+    console.log(`📧 Contact: http://localhost:${PORT}/api/contact`);
+    console.log(`📧 Gmail:   http://localhost:${PORT}/api/gmail-contact`);
     console.log(`Press Ctrl+C to stop`);
 });
