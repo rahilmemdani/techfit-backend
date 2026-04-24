@@ -170,7 +170,7 @@ module.exports = async function handler(req, res) {
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: #fff; color: #111; padding: 25px; text-align: center;">
             <a href="https://techfittech.com" style="text-decoration: none;">
-              <img src="https://techfittech.com/wp-content/uploads/2026/01/logo-1.png" alt="Techfit Tech" style="max-height: 50px; width: auto; border: 0;">
+              <img src="https://www.techfittech.com/assets/images/other/img-7edcc2dfb4.png" alt="Techfit Tech" style="max-height: 50px; width: auto; border: 0;">
             </a>
           </div>
           <div style="padding: 30px; background-color: #fff; text-align: center;">
@@ -182,7 +182,7 @@ module.exports = async function handler(req, res) {
               Our team will review your requirements and get back to you as soon as possible.
             </p>
             <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-              <p style="margin: 0; color: #111; font-weight: bold;">Techfit Factory Team</p>
+              <p style="margin: 0; color: #111; font-weight: bold;">Techfit Health and Wellness Team</p>
               <p style="margin: 5px 0 0; color: #777; font-size: 14px;">Direct From Factory Quality</p>
             </div>
           </div>
